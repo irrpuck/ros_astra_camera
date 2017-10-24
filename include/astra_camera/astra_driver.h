@@ -45,9 +45,13 @@
 
 #include <image_transport/image_transport.h>
 #include <camera_info_manager/camera_info_manager.h>
-
+#include <diagnostic_msgs/DiagnosticStatus.h>
+#include <diagnostic_updater/diagnostic_updater.h>
+#include <diagnostic_updater/update_functions.h>
+#include <diagnostic_updater/publisher.h>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "astra_camera/astra_device_manager.h"
 #include "astra_camera/astra_device.h"
@@ -104,6 +108,8 @@ private:
   void setIRVideoMode(const AstraVideoMode& ir_video_mode);
   void setColorVideoMode(const AstraVideoMode& color_video_mode);
   void setDepthVideoMode(const AstraVideoMode& depth_video_mode);
+
+  void populateDiagnosticsStatus(diagnostic_updater::DiagnosticStatusWrapper &stat);
 
   ros::NodeHandle& nh_;
   ros::NodeHandle& pnh_;
@@ -174,6 +180,12 @@ private:
   bool use_device_time_;
 
   Config old_config_;
+
+  diagnostic_updater::Updater diagnostic_updater_;
+  std::shared_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> rgb_image_frequency_ptr_;
+  std::shared_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> depth_image_frequency_ptr_;
+  double expected_rgb_update_freq_;
+  double expected_depth_update_freq_;
 };
 
 }

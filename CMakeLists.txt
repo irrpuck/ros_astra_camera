@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(astra_camera)
 
-find_package(catkin REQUIRED camera_info_manager dynamic_reconfigure image_transport  nodelet sensor_msgs roscpp message_generation)
+add_definitions(-std=c++11)
+
+find_package(catkin REQUIRED camera_info_manager dynamic_reconfigure image_transport  nodelet sensor_msgs roscpp message_generation diagnostic_msgs diagnostic_updater)
 
 find_package(Boost REQUIRED COMPONENTS system thread)
 
@@ -36,7 +38,7 @@ generate_messages()
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES astra_wrapper
-  CATKIN_DEPENDS camera_info_manager dynamic_reconfigure image_transport nodelet sensor_msgs roscpp message_runtime
+  CATKIN_DEPENDS camera_info_manager dynamic_reconfigure image_transport nodelet sensor_msgs roscpp message_runtime diagnostic_msgs diagnostic_updater
   DEPENDS libastra
 )
 

@@ -207,6 +207,26 @@ void AstraDriver::advertiseROSTopics()
 
   get_serial_server = nh_.advertiseService("get_serial", &AstraDriver::getSerialCb,this);
 
+  diagnostic_updater_.setHardwareID(device_manager_->getSerial(device_->getUri()));
+
+  diagnostic_updater_.add("Hardware Status", this, &AstraDriver::populateDiagnosticsStatus);
+
+  rgb_image_frequency_ptr_ = std::make_shared<diagnostic_updater::HeaderlessTopicDiagnostic>("RGB Image Topic", diagnostic_updater_,
+                                                                                             diagnostic_updater::FrequencyStatusParam(&expected_rgb_update_freq_,
+                                                                                                     &expected_rgb_update_freq_));
+
+  rgb_image_frequency_ptr_ = std::make_shared<diagnostic_updater::HeaderlessTopicDiagnostic>("Depth Image Topic", diagnostic_updater_,
+                                                                                             diagnostic_updater::FrequencyStatusParam(&expected_depth_update_freq_,
+                                                                                                                                      &expected_depth_update_freq_));
+}
+
+void AstraDriver::populateDiagnosticsStatus(diagnostic_updater::DiagnosticStatusWrapper &stat)
+{
+  stat.add("Device Uri", device_->getUri());
+  stat.add("Device Name", device_->getName());
+  stat.add("Depth Stream Started", device_->isDepthStreamStarted());
+  stat.add("RGB Stream Started", device_->isColorStreamStarted());
+  stat.add("IR Stream Started", device_->isIRStreamStarted());
 }
 
 bool AstraDriver::getSerialCb(astra_camera::GetSerialRequest& req, astra_camera::GetSerialResponse& res) {
@@ -393,12 +413,14 @@ void AstraDriver::colorConnectCb()
 
     ROS_INFO("Starting color stream.");
     device_->startColorStream();
+    expected_rgb_update_freq_ = color_video_mode_.frame_rate_;
 
   }
   else if (!color_subscribers_ && device_->isColorStreamStarted())
   {
     ROS_INFO("Stopping color stream.");
     device_->stopColorStream();
+    expected_rgb_update_freq_ = 0.0;
 
     // Start IR if it's been blocked on RGB subscribers
     bool need_ir = pub_ir_.getNumSubscribers() > 0;
@@ -427,11 +449,13 @@ void AstraDriver::depthConnectCb()
 
     ROS_INFO("Starting depth stream.");
     device_->startDepthStream();
+    expected_depth_update_freq_ = depth_video_mode_.frame_rate_;
   }
   else if (!need_depth && device_->isDepthStreamStarted())
   {
     ROS_INFO("Stopping depth stream.");
     device_->stopDepthStream();
+    expected_depth_update_freq_ = 0.0;
   }
 }
 
@@ -481,6 +505,7 @@ void AstraDriver::newIRFrameCallback(sensor_msgs::ImagePtr image)
 
 void AstraDriver::newColorFrameCallback(sensor_msgs::ImagePtr image)
 {
+  diagnostic_updater_.update();
   if ((++data_skip_color_counter_)%data_skip_==0)
   {
     data_skip_color_counter_ = 0;
@@ -491,6 +516,7 @@ void AstraDriver::newColorFrameCallback(sensor_msgs::ImagePtr image)
       image->header.stamp = image->header.stamp + color_time_offset_;
 
       pub_color_.publish(image, getColorCameraInfo(image->width, image->height, image->header.stamp));
+      rgb_image_frequency_ptr_->tick();
     }
   }
 }
@@ -537,6 +563,7 @@ void AstraDriver::newDepthFrameCallback(sensor_msgs::ImagePtr image)
       if (depth_raw_subscribers_)
       {
         pub_depth_raw_.publish(image, cam_info);
+        depth_image_frequency_ptr_->tick();
       }
 
       if (depth_subscribers_ )
