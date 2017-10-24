@@ -220,6 +220,8 @@ void AstraDriver::advertiseROSTopics()
   depth_image_frequency_ptr_ = std::make_shared<diagnostic_updater::HeaderlessTopicDiagnostic>("Depth Image Topic", diagnostic_updater_,
                                                                                              diagnostic_updater::FrequencyStatusParam(&expected_depth_update_freq_,
                                                                                                                                       &expected_depth_update_freq_));
+
+  diagnostic_timer_ = nh_.createTimer(ros::Duration(1.0), &AstraDriver::diagnosticTimerCallback, this);
 }
 
 void AstraDriver::populateDiagnosticsStatus(diagnostic_updater::DiagnosticStatusWrapper &stat)
@@ -229,6 +231,11 @@ void AstraDriver::populateDiagnosticsStatus(diagnostic_updater::DiagnosticStatus
   stat.add("Depth Stream Started", device_->isDepthStreamStarted());
   stat.add("RGB Stream Started", device_->isColorStreamStarted());
   stat.add("IR Stream Started", device_->isIRStreamStarted());
+}
+
+void AstraDriver::diagnosticTimerCallback(const ros::TimerEvent &)
+{
+  diagnostic_updater_.update();
 }
 
 bool AstraDriver::getSerialCb(astra_camera::GetSerialRequest& req, astra_camera::GetSerialResponse& res) {
@@ -507,7 +514,7 @@ void AstraDriver::newIRFrameCallback(sensor_msgs::ImagePtr image)
 
 void AstraDriver::newColorFrameCallback(sensor_msgs::ImagePtr image)
 {
-  diagnostic_updater_.update();
+
   if ((++data_skip_color_counter_)%data_skip_==0)
   {
     data_skip_color_counter_ = 0;

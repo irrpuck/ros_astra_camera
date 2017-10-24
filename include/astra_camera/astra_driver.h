@@ -110,8 +110,10 @@ private:
   void setDepthVideoMode(const AstraVideoMode& depth_video_mode);
 
   void populateDiagnosticsStatus(diagnostic_updater::DiagnosticStatusWrapper &stat);
+  void diagnosticTimerCallback(const ros::TimerEvent &);
 
-  ros::NodeHandle& nh_;
+
+    ros::NodeHandle& nh_;
   ros::NodeHandle& pnh_;
 
   boost::shared_ptr<AstraDeviceManager> device_manager_;
@@ -186,6 +188,7 @@ private:
   std::shared_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> depth_image_frequency_ptr_;
   double expected_rgb_update_freq_;
   double expected_depth_update_freq_;
+  ros::Timer diagnostic_timer_;
 };
 
 }
