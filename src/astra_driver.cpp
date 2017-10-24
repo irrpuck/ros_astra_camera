@@ -211,11 +211,13 @@ void AstraDriver::advertiseROSTopics()
 
   diagnostic_updater_.add("Hardware Status", this, &AstraDriver::populateDiagnosticsStatus);
 
+  expected_rgb_update_freq_ = 0.0;
+  expected_depth_update_freq_ = 0.0;
   rgb_image_frequency_ptr_ = std::make_shared<diagnostic_updater::HeaderlessTopicDiagnostic>("RGB Image Topic", diagnostic_updater_,
                                                                                              diagnostic_updater::FrequencyStatusParam(&expected_rgb_update_freq_,
                                                                                                      &expected_rgb_update_freq_));
 
-  rgb_image_frequency_ptr_ = std::make_shared<diagnostic_updater::HeaderlessTopicDiagnostic>("Depth Image Topic", diagnostic_updater_,
+  depth_image_frequency_ptr_ = std::make_shared<diagnostic_updater::HeaderlessTopicDiagnostic>("Depth Image Topic", diagnostic_updater_,
                                                                                              diagnostic_updater::FrequencyStatusParam(&expected_depth_update_freq_,
                                                                                                                                       &expected_depth_update_freq_));
 }
