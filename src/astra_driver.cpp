@@ -226,6 +226,14 @@ void AstraDriver::advertiseROSTopics()
 
 void AstraDriver::populateDiagnosticsStatus(diagnostic_updater::DiagnosticStatusWrapper &stat)
 {
+  if (device_->isValid())
+  {
+      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Device Started");
+  }
+  else
+  {
+      stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Device Not Started");
+  }
   stat.add("Device Uri", device_->getUri());
   stat.add("Device Name", device_->getName());
   stat.add("Depth Stream Started", device_->isDepthStreamStarted());
