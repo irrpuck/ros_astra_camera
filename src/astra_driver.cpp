@@ -215,11 +215,11 @@ void AstraDriver::advertiseROSTopics()
   expected_depth_update_freq_ = 0.0;
   rgb_image_frequency_ptr_ = std::make_shared<diagnostic_updater::HeaderlessTopicDiagnostic>("RGB Image Topic", diagnostic_updater_,
                                                                                              diagnostic_updater::FrequencyStatusParam(&expected_rgb_update_freq_,
-                                                                                                     &expected_rgb_update_freq_));
+                                                                                                     &expected_rgb_update_freq_, 0.25));
 
   depth_image_frequency_ptr_ = std::make_shared<diagnostic_updater::HeaderlessTopicDiagnostic>("Depth Image Topic", diagnostic_updater_,
                                                                                              diagnostic_updater::FrequencyStatusParam(&expected_depth_update_freq_,
-                                                                                                                                      &expected_depth_update_freq_));
+                                                                                                                                      &expected_depth_update_freq_, 0.25));
 
   diagnostic_timer_ = nh_.createTimer(ros::Duration(1.0), &AstraDriver::diagnosticTimerCallback, this);
 }
